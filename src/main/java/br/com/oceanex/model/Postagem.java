@@ -4,7 +4,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,5 +35,9 @@ public class Postagem {
     @Size(min = 1, message="{postagem.bibliografia.size}")
     private String bibliografia; // Links de referências da postagem
 
-    private String imagem;
+    @NotNull(message = "{postagem.imagem.notnull}")
+    @Lob
+    private byte[] imagem;
+    // private String imagem;
+
 }

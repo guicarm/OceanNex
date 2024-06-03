@@ -4,9 +4,13 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,8 +19,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import br.com.oceanex.model.PredicaoImagem;
@@ -54,16 +60,24 @@ public class PredicaoImagemController {
     @ResponseStatus(CREATED)
     @Operation(
         summary = "Cadastrar Predições",
-        description = "Cadastra uma predição especificada através de seu ID."
+        description = "Cadastra uma predição."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Predição criada com sucesso."),
         @ApiResponse(responseCode = "400", description = "Validação falhou. Verifique o corpo da requisição.")
     })
-    public PredicaoImagem create(@RequestBody @Valid PredicaoImagem PredicaoImagem){
-        log.info("Predicao Cadastrada {}", PredicaoImagem);
-        return repository.save(PredicaoImagem);
-    }
+    public PredicaoImagem create(@RequestParam("imagem") MultipartFile imagem,
+                             @RequestParam("predicao") @Valid PredicaoImagem predicaoImagem) throws IOException {
+    byte[] imagemBytes = imagem.getBytes();
+    predicaoImagem.setImagem(imagemBytes);
+    log.info("Predicao Cadastrada {}", predicaoImagem);
+
+    return repository.save(predicaoImagem);
+}
+   // public PredicaoImagem create(@RequestBody @Valid PredicaoImagem PredicaoImagem){
+   //      log.info("Predicao Cadastrada {}", PredicaoImagem);
+   //      return repository.save(PredicaoImagem);
+   //  }
  
  
     // ========== GET(Detalhar Predição) ============
@@ -123,5 +137,40 @@ public class PredicaoImagemController {
                                             NOT_FOUND,
                                             "Não existe Predicao com o ID informado.")
                             );
+    }
+
+
+ // ========== GET(Obter Imagem) ============
+    @GetMapping("{id}/imagem")
+    @Operation(
+            summary = "Obter imagem da predição",
+            description = "Retorna a imagem da predição especificada através de seu ID."
+    )
+    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
+        log.info("buscando imagem da predição com id {}", id);
+
+        return repository
+                .findById(id)
+                .map(predicaoImagem -> {
+                    byte[] imagem = predicaoImagem.getImagem();
+                    return ResponseEntity.ok()
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"imagem.jpg\"")
+                            .contentType(MediaType.IMAGE_JPEG)
+                            .body(imagem);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // ========== GET(Listar URLs de Imagens) ============
+    @GetMapping("imagens")
+    @Operation(
+            summary = "Listar URLs de imagens",
+            description = "Retorna uma lista de URLs para todas as imagens registradas."
+    )
+    public List<String> listarUrlsImagem() {
+        log.info("listando todas as imagens");
+        return repository.findAll().stream()
+                .map(predicaoImagem -> "http://localhost:8080/predicaoimagem/" + predicaoImagem.getId() + "/imagem")
+                .collect(Collectors.toList());
     }
 }
