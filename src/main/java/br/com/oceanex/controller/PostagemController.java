@@ -1,15 +1,20 @@
 package br.com.oceanex.controller;
 
 
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +46,14 @@ public class PostagemController {
 
     @Autowired // Injeção de Dependência
     PostagemRepository repository;
+
+    // Paginação
+    public Page<Postagem> index(
+        @ParameterObject @PageableDefault (size = 5, sort = "titulo", direction = Direction.DESC) Pageable pageable,
+        @RequestParam(required = false) String biologoNome
+    ){
+        return repository.findByBiologoNomeIgnoreCase(biologoNome, pageable);
+    }
 
 
     // ========== GET(Listar Postagens) ============
@@ -78,11 +91,6 @@ public class PostagemController {
             log.info("Postagem Cadastrada {}", postagem);
             return repository.save(postagem);
         }
-
-    //public Postagem create(@RequestBody @Valid Postagem Postagem){
-    //    log.info("Postagem Cadastrada {}", Postagem);
-    //    return repository.save(Postagem);
-    //}
  
     // ========== GET(Detalhar Postagem) ============
     @GetMapping("{id}")
