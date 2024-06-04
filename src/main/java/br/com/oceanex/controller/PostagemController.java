@@ -47,24 +47,20 @@ public class PostagemController {
     @Autowired // Injeção de Dependência
     PostagemRepository repository;
 
-    // Paginação
+    
+    // ========== GET(Listar Postagens com paginação) ============
+    @GetMapping
+    @Operation(
+        summary = "Listar postagens",
+        description = "Retorna um array com todas postagens registradas."
+    )
     public Page<Postagem> index(
         @ParameterObject @PageableDefault (size = 5, sort = "titulo", direction = Direction.DESC) Pageable pageable,
         @RequestParam(required = false) String biologoNome
     ){
         return repository.findByBiologoNomeIgnoreCase(biologoNome, pageable);
     }
-
-
-    // ========== GET(Listar Postagens) ============
-    @GetMapping
-    @Operation(
-        summary = "Listar postagens",
-        description = "Retorna um array com todas postagens registradas."
-    )
-    public List<Postagem> index(){
-        return repository.findAll();
-    }
+    
  
  
     // ========== POST(Cadastrar Postagem) ============
