@@ -11,14 +11,12 @@ import br.com.oceanex.model.Email;
 import br.com.oceanex.model.FeedBackImagem;
 import br.com.oceanex.model.FeedBackPostagem;
 import br.com.oceanex.model.Postagem;
-import br.com.oceanex.model.PredicaoImagem;
 import br.com.oceanex.model.Usuario;
 import br.com.oceanex.repository.BiologoRepository;
 import br.com.oceanex.repository.EmailRepository;
 import br.com.oceanex.repository.FeedBackImagemRepository;
 import br.com.oceanex.repository.FeedBackPostagemRepository;
 import br.com.oceanex.repository.PostagemRepository;
-import br.com.oceanex.repository.PredicaoImagemRepository;
 import br.com.oceanex.repository.UsuarioRepository;
 
 @Configuration
