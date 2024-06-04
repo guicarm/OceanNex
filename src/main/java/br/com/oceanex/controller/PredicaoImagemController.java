@@ -31,7 +31,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -66,19 +65,18 @@ public class PredicaoImagemController {
         @ApiResponse(responseCode = "201", description = "Predição criada com sucesso."),
         @ApiResponse(responseCode = "400", description = "Validação falhou. Verifique o corpo da requisição.")
     })
-    public PredicaoImagem create(@RequestParam("imagem") MultipartFile imagem,
-                             @RequestParam("predicao") @Valid PredicaoImagem predicaoImagem) throws IOException {
-    byte[] imagemBytes = imagem.getBytes();
-    predicaoImagem.setImagem(imagemBytes);
+    public PredicaoImagem create(@RequestParam("taxaPredicao") Double taxaPredicao,
+                                @RequestParam("descricaoPredicao") String descricaoPredicao,
+                                @RequestParam("imagem") MultipartFile imagem) throws IOException {
+            PredicaoImagem predicaoImagem = PredicaoImagem.builder()
+                        .taxaPredicao(taxaPredicao)
+                        .descricaoPredicao(descricaoPredicao)
+                        .imagem(imagem.getBytes())
+                        .build();
     log.info("Predicao Cadastrada {}", predicaoImagem);
-
     return repository.save(predicaoImagem);
 }
-   // public PredicaoImagem create(@RequestBody @Valid PredicaoImagem PredicaoImagem){
-   //      log.info("Predicao Cadastrada {}", PredicaoImagem);
-   //      return repository.save(PredicaoImagem);
-   //  }
- 
+
  
     // ========== GET(Detalhar Predição) ============
     @GetMapping("{id}")

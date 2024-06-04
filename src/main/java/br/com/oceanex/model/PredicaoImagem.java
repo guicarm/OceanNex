@@ -7,7 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +25,7 @@ public class PredicaoImagem {
     private Long id;
 
     @NotNull(message = "{predicaoimagem.taxapredicao.notnull}")
-    @Positive(message="{predicaoimagem.taxapredicao.positive}")
+    @PositiveOrZero(message="{predicaoimagem.taxapredicao.positiveorzero}")
     private Double taxaPredicao;
 
     @NotBlank(message = "{predicaoimagem.descricaopredicao.notblank}")

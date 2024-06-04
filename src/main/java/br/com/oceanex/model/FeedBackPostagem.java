@@ -22,9 +22,8 @@ public class FeedBackPostagem {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @TipoStatusFeedback
+    @TipoStatusFeedback(message = "{feedbackpostagem.tipostatusfeedback}")
     @NotBlank(message = "{feedbackpostagem.statusfeedback.notblank}")
-    @Size(min = 3, max = 100, message="{feedbackpostagem.statusfeedback.size}")
     private String statusFeedback; // Like ou Deslike
 
     @Size(min = 3, message="{feedbackpostagem.descricaofeedback.size}")

@@ -22,7 +22,7 @@ public class Usuario {
     private Long id;
 
     @NotBlank(message = "{usuario.nome.notblank}")
-    @Size(min = 3, max = 100, message="{usuario.nome.size}")
+    @Size(min = 3, max = 200, message="{usuario.nome.size}")
     private String nome;
 
     @NotBlank(message = "{usuario.senha.notblank}")

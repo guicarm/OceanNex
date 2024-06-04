@@ -22,7 +22,7 @@ public class Biologo {
     private Long id;
 
     @NotBlank(message = "{biologo.nome.notblank}")
-    @Size(min = 3, max = 100, message="{biologo.nome.size}")
+    @Size(min = 3, max = 200, message="{biologo.nome.size}")
     private String nome;
 
     @NotBlank(message = "{biologo.numeroregistro.notblank}")

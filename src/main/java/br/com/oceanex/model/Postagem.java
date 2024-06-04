@@ -5,8 +5,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +25,7 @@ public class Postagem {
 
     @NotBlank(message = "{postagem.titulo.notblank}")
     @Size(min = 3, max = 100, message="{postagem.titulo.size}")
-    private String titulo; // Título da postagem
+    private String titulo;
 
     @NotBlank(message = "{postagem.textopostagem.notblank}")
     @Size(min = 1, message="{postagem.textopostagem.size}")
@@ -35,9 +35,9 @@ public class Postagem {
     @Size(min = 1, message="{postagem.bibliografia.size}")
     private String bibliografia; // Links de referências da postagem
 
-    @NotNull(message = "{postagem.imagem.notnull}")
     @Lob
     private byte[] imagem;
-    // private String imagem;
 
+    @ManyToOne
+    private Biologo biologo;
 }
