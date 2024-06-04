@@ -1,12 +1,15 @@
 package br.com.oceanex.controller;
 
-import java.util.List;
-
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,10 +36,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Tag(name = "Usuários")
 public class UsuarioController {
-    
-    @Autowired // Injeção de Dependência
+
+    @Autowired
     UsuarioRepository repository;
 
+    @Autowired
+    PagedResourcesAssembler<Usuario> pagedResourcesAssembler;
 
     // ========== GET(Listar Usuarios) ============
     @GetMapping
@@ -44,11 +49,11 @@ public class UsuarioController {
         summary = "Listar Usuários",
         description = "Retorna um array com todos usuários registrados."
     )
-    public List<Usuario> index(){
-        return repository.findAll();
+    public PagedModel<EntityModel<Usuario>> index(Pageable pageable) {
+        Page<Usuario> usuarios = repository.findAll(pageable);
+        return pagedResourcesAssembler.toModel(usuarios, Usuario::toEntityModel);
     }
- 
- 
+
     // ========== POST(Cadastrar Usuario) ============
     @PostMapping
     @ResponseStatus(CREATED)
@@ -60,27 +65,29 @@ public class UsuarioController {
         @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso."),
         @ApiResponse(responseCode = "400", description = "Validação falhou. Verifique o corpo da requisição.")
     })
-    public Usuario create(@RequestBody @Valid Usuario usuario){
+    public ResponseEntity<EntityModel<Usuario>> create(@RequestBody @Valid Usuario usuario) {
         log.info("Usuario Cadastrado {}", usuario);
-        return repository.save(usuario);
+        repository.save(usuario);
+
+        EntityModel<Usuario> entityModel = usuario.toEntityModel();
+        return ResponseEntity
+                    .created(entityModel.getRequiredLink("self").toUri())
+                    .body(entityModel);
     }
- 
- 
+
     // ========== GET(Detalhar Usuario) ============
     @GetMapping("{id}")
     @Operation(
         summary = "Detalhar usuários",
         description = "Detalha um usuário especificado através de seu ID."
     )
-    public ResponseEntity<Usuario> show(@PathVariable Long id){
+    public ResponseEntity<EntityModel<Usuario>> show(@PathVariable Long id) {
         log.info("buscando usuario com id {}", id);
- 
-            return repository
-                            .findById(id)
-                            .map(ResponseEntity::ok)
-                            .orElse(ResponseEntity.notFound().build());
+
+        return repository.findById(id)
+                .map(usuario -> ResponseEntity.ok(usuario.toEntityModel()))
+                .orElse(ResponseEntity.notFound().build());
     }
- 
 
     // ========== DELETE (Excluir Usuario) ============
     @DeleteMapping("{id}")
@@ -89,39 +96,33 @@ public class UsuarioController {
         summary = "Excluir usuários",
         description = "Exclui um usuário especificado através de seu ID."
     )
-    public void destroy(@PathVariable Long id){
+    public void destroy(@PathVariable Long id) {
         log.info("Usuario apagado {}.", id);
- 
+
         verificarSeUsuarioExiste(id);
         repository.deleteById(id);
-                   
     }
- 
- 
+
     // ========== PUT (Atualizar Usuario) ============
     @PutMapping("{id}")
     @Operation(
         summary = "Atualizar usuários",
         description = "Atualiza um usuário especificado através de seu ID."
     )
-    public Usuario update(@PathVariable Long id, @RequestBody Usuario usuario){
+    public ResponseEntity<EntityModel<Usuario>> update(@PathVariable Long id, @RequestBody @Valid Usuario usuario) {
         log.info("Atualizando usuario {} para {}", id, usuario);
- 
+
         verificarSeUsuarioExiste(id);
         usuario.setId(id);
-        return repository.save(usuario);
- 
+        repository.save(usuario);
+
+        return ResponseEntity.ok(usuario.toEntityModel());
     }
- 
 
-
-  // ==== MÉTODO VERIFICAR SE USUARIO EXISTE ========
- private void verificarSeUsuarioExiste(Long id) {
-                repository
-                .findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                                            NOT_FOUND,
-                                            "Não existe usuario com o ID informado.")
-                            );
+    // ==== MÉTODO VERIFICAR SE USUARIO EXISTE ========
+    private void verificarSeUsuarioExiste(Long id) {
+        repository.findById(id).orElseThrow(() -> new ResponseStatusException(
+                NOT_FOUND, "Não existe usuario com o ID informado.")
+        );
     }
 }
