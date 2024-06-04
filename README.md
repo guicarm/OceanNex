@@ -47,6 +47,7 @@ git clone https://github.com/guicarm/ProjetoNexus
 
 - [Spring](https://spring.io)
 - [Insomnia](https://insomnia.rest/download)
+- [Data Modeler](https://www.oracle.com/database/sqldeveloper/technologies/sql-data-modeler/download/)
 
 <br/>
 
