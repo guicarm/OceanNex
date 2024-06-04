@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -28,4 +29,7 @@ public class FeedBackPostagem {
 
     @Size(min = 3, message="{feedbackpostagem.descricaofeedback.size}")
     private String descricaoFeedback; // O usuário poderá deixar um comentário em postagens feitas pelos biólogos da plataforma.
+
+    @ManyToOne
+    private Usuario usuario;
 }

@@ -48,14 +48,14 @@ public class PostagemController {
     PostagemRepository repository;
 
     
-    // ========== GET(Listar Postagens com paginação) ============
+    // ========== GET(Listar Postagens com PAGINAÇÃO) ============
     @GetMapping
     @Operation(
         summary = "Listar postagens",
         description = "Retorna um array com todas postagens registradas."
     )
     public Page<Postagem> index(
-        @ParameterObject @PageableDefault (size = 5, sort = "titulo", direction = Direction.DESC) Pageable pageable,
+        @ParameterObject @PageableDefault (size = 5, sort = "titulo", direction = Direction.ASC) Pageable pageable,
         @RequestParam(required = false) String biologoNome
     ){
         return repository.findByBiologoNomeIgnoreCase(biologoNome, pageable);
