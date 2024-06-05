@@ -1,5 +1,10 @@
 package br.com.oceanex.model;
 
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+
+import br.com.oceanex.controller.BiologoController;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,4 +43,15 @@ public class Biologo {
     private String crbio;
     /* CRBIO é a sigla/código para o Conselho Regional de Biologia, cujo objetivo é habilitar, valorizar e defender
     a profissão do biólogo, também é responsável por fiscalizar e combater a prática ilegal da profissão.*/
+
+    // Método ToModel   
+    public EntityModel<Biologo> toEntityModel() {
+        EntityModel<Biologo> model = EntityModel.of(this);
+
+        Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(BiologoController.class).show(this.id)).withSelfRel();
+        Link allBiologosLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(BiologoController.class).index(null)).withRel("allBiologos");
+        model.add(selfLink, allBiologosLink);
+
+        return model;
+    }
 }

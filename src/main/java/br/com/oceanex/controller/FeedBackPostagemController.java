@@ -10,6 +10,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,18 +44,26 @@ public class FeedBackPostagemController {
     @Autowired // Injeção de Dependência
     FeedBackPostagemRepository repository;
 
+    @Autowired
+    PagedResourcesAssembler<FeedBackPostagem> pagedResourcesAssembler;
 
-        // ========== GET(Listar Feedbacks de postagens com PAGINAÇÃO) ============
+    // ========== GET(Listar Feedbacks de postagens com PAGINAÇÃO) ============
     @GetMapping
     @Operation(
         summary = "Listar postagens",
         description = "Retorna um array com todas postagens registradas."
     )
-    public Page<FeedBackPostagem> index(
+    public PagedModel<EntityModel<FeedBackPostagem>> index(
         @ParameterObject @PageableDefault (size = 5, sort = "usuario", direction = Direction.ASC) Pageable pageable,
         @RequestParam(required = false) String usuarioNome
     ){
-        return repository.findByUsuarioNomeIgnoreCase(usuarioNome, pageable);
+        Page<FeedBackPostagem> feedbacks;
+        if (usuarioNome == null) {
+            feedbacks = repository.findAll(pageable);
+        } else {
+            feedbacks = repository.findByUsuarioNomeIgnoreCase(usuarioNome, pageable);
+        }
+        return pagedResourcesAssembler.toModel(feedbacks, FeedBackPostagem::toEntityModel);
     }
  
     // ========== POST(Cadastrar Feedback de postagem) ============
@@ -66,9 +77,14 @@ public class FeedBackPostagemController {
         @ApiResponse(responseCode = "201", description = "Feedback criado com sucesso."),
         @ApiResponse(responseCode = "400", description = "Validação falhou. Verifique o corpo da requisição.")
     })
-    public FeedBackPostagem create(@RequestBody @Valid FeedBackPostagem feedBackPostagem){
+    public ResponseEntity<EntityModel<FeedBackPostagem>> create(@RequestBody @Valid FeedBackPostagem feedBackPostagem){
         log.info("Feedback Cadastrado {}", feedBackPostagem);
-        return repository.save(feedBackPostagem);
+        repository.save(feedBackPostagem);
+
+        EntityModel<FeedBackPostagem> entityModel = feedBackPostagem.toEntityModel();
+        return ResponseEntity
+                    .created(entityModel.getRequiredLink("self").toUri())
+                    .body(entityModel);
     }
  
  
@@ -78,13 +94,13 @@ public class FeedBackPostagemController {
         summary = "Detalhar feedbacks",
         description = "Detalha um feedback especificado através de seu ID."
     )
-    public ResponseEntity<FeedBackPostagem> show(@PathVariable Long id){
+    public ResponseEntity<EntityModel<FeedBackPostagem>> show(@PathVariable Long id){
         log.info("buscando feedback com id {}", id);
  
-            return repository
-                            .findById(id)
-                            .map(ResponseEntity::ok)
-                            .orElse(ResponseEntity.notFound().build());
+        return repository
+                .findById(id)
+                .map(feedback -> ResponseEntity.ok(feedback.toEntityModel()))
+                .orElse(ResponseEntity.notFound().build());
     }
  
 
@@ -100,7 +116,6 @@ public class FeedBackPostagemController {
  
         verificarSeFeedbackPostagemExiste(id);
         repository.deleteById(id);
-                   
     }
  
  
@@ -110,24 +125,20 @@ public class FeedBackPostagemController {
         summary = "Atualizar feedbacks",
         description = "Atualiza um feedback especificado através de seu ID."
     )
-    public FeedBackPostagem update(@PathVariable Long id, @RequestBody FeedBackPostagem feedBackPostagem){
-        log.info("Atualizando usuario {} para {}", id, feedBackPostagem);
+    public ResponseEntity<EntityModel<FeedBackPostagem>> update(@PathVariable Long id, @RequestBody @Valid FeedBackPostagem feedBackPostagem){
+        log.info("Atualizando feedback {} para {}", id, feedBackPostagem);
  
         verificarSeFeedbackPostagemExiste(id);
         feedBackPostagem.setId(id);
-        return repository.save(feedBackPostagem);
- 
+        repository.save(feedBackPostagem);
+
+        return ResponseEntity.ok(feedBackPostagem.toEntityModel());
     }
- 
 
-
-  // ==== MÉTODO VERIFICAR SE FEEDBACK DE IMAGEM EXISTE ========
- private void verificarSeFeedbackPostagemExiste(Long id) {
-                repository
-                .findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                                            NOT_FOUND,
-                                            "Não existe Feedback de postagem com o ID informado.")
-                            );
+    // ==== MÉTODO VERIFICAR SE FEEDBACK DE POSTAGEM EXISTE ========
+    private void verificarSeFeedbackPostagemExiste(Long id) {
+        repository.findById(id).orElseThrow(() -> new ResponseStatusException(
+                NOT_FOUND, "Não existe Feedback de postagem com o ID informado.")
+        );
     }
 }

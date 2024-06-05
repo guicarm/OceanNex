@@ -1,12 +1,16 @@
 package br.com.oceanex.controller;
 
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-import java.util.List;
-
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,9 +38,11 @@ import lombok.extern.slf4j.Slf4j;
 @Tag(name = "Emails")
 public class EmailController {
 
-    @Autowired // Injeção de Dependência
+    @Autowired
     EmailRepository repository;
 
+    @Autowired
+    PagedResourcesAssembler<Email> pagedResourcesAssembler;
 
     // ========== GET(Listar Emails) ============
     @GetMapping
@@ -44,11 +50,11 @@ public class EmailController {
         summary = "Listar Emails",
         description = "Retorna um array com todos emails registrados."
     )
-    public List<Email> index(){
-        return repository.findAll();
+    public PagedModel<EntityModel<Email>> index(@ParameterObject Pageable pageable) {
+        Page<Email> emails = repository.findAll(pageable);
+        return pagedResourcesAssembler.toModel(emails, Email::toEntityModel);
     }
- 
- 
+
     // ========== POST(Cadastrar Email) ============
     @PostMapping
     @ResponseStatus(CREATED)
@@ -60,27 +66,29 @@ public class EmailController {
         @ApiResponse(responseCode = "201", description = "Email criado com sucesso."),
         @ApiResponse(responseCode = "400", description = "Validação falhou. Verifique o corpo da requisição.")
     })
-    public Email create(@RequestBody @Valid Email email){
+    public ResponseEntity<EntityModel<Email>> create(@RequestBody @Valid Email email) {
         log.info("Email Cadastrado {}", email);
-        return repository.save(email);
+        repository.save(email);
+
+        EntityModel<Email> entityModel = email.toEntityModel();
+        return ResponseEntity
+                    .created(entityModel.getRequiredLink("self").toUri())
+                    .body(entityModel);
     }
- 
- 
+
     // ========== GET(Detalhar Email) ============
     @GetMapping("{id}")
     @Operation(
         summary = "Detalhar emails",
         description = "Detalha um email especificado através de seu ID."
     )
-    public ResponseEntity<Email> show(@PathVariable Long id){
+    public ResponseEntity<EntityModel<Email>> show(@PathVariable Long id) {
         log.info("buscando email com id {}", id);
- 
-            return repository
-                            .findById(id)
-                            .map(ResponseEntity::ok)
-                            .orElse(ResponseEntity.notFound().build());
+
+        return repository.findById(id)
+                .map(email -> ResponseEntity.ok(email.toEntityModel()))
+                .orElse(ResponseEntity.notFound().build());
     }
- 
 
     // ========== DELETE (Excluir Email) ============
     @DeleteMapping("{id}")
@@ -89,40 +97,33 @@ public class EmailController {
         summary = "Excluir emails",
         description = "Exclui um email especificado através de seu ID."
     )
-    public void destroy(@PathVariable Long id){
+    public void destroy(@PathVariable Long id) {
         log.info("Email apagado {}.", id);
- 
+
         verificarSeEmailExiste(id);
         repository.deleteById(id);
-                   
     }
- 
- 
+
     // ========== PUT (Atualizar Email) ============
     @PutMapping("{id}")
     @Operation(
         summary = "Atualizar emails",
         description = "Atualiza um email especificado através de seu ID."
     )
-    public Email update(@PathVariable Long id, @RequestBody Email email){
+    public ResponseEntity<EntityModel<Email>> update(@PathVariable Long id, @RequestBody @Valid Email email) {
         log.info("Atualizando email {} para {}", id, email);
- 
+
         verificarSeEmailExiste(id);
         email.setId(id);
-        return repository.save(email);
- 
-    }
- 
+        repository.save(email);
 
-
-  // ==== MÉTODO VERIFICAR SE EMAIL EXISTE ========
- private void verificarSeEmailExiste(Long id) {
-                repository
-                .findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                                            NOT_FOUND,
-                                            "Não existe email com o ID informado.")
-                            );
+        return ResponseEntity.ok(email.toEntityModel());
     }
-    
+
+    // ==== MÉTODO VERIFICAR SE EMAIL EXISTE ========
+    private void verificarSeEmailExiste(Long id) {
+        repository.findById(id).orElseThrow(() -> new ResponseStatusException(
+                NOT_FOUND, "Não existe email com o ID informado.")
+        );
+    }
 }

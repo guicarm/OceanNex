@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,14 +46,21 @@ public class PredicaoImagemController {
     PredicaoImagemRepository repository;
 
 
-    // ========== GET(Listar Prediçoes de Imagem) ============
+    // ========== GET(Listar Predições de Imagem) ============
     @GetMapping
     @Operation(
         summary = "Listar Predições",
         description = "Retorna um array com todas as predições feitas."
     )
-    public List<PredicaoImagem> index(){
-        return repository.findAll();
+    public List<EntityModel<PredicaoImagem>> index(){
+        List<PredicaoImagem> predicoes = repository.findAll();
+        return predicoes.stream()
+                .map(predicao -> {
+                    Long id = predicao.getId();
+                    Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(PredicaoImagemController.class).show(id)).withSelfRel();
+                    return EntityModel.of(predicao, selfLink);
+                })
+                .collect(Collectors.toList());
     }
  
  
@@ -84,13 +94,17 @@ public class PredicaoImagemController {
         summary = "Detalhar Predições",
         description = "Detalha uma predição especificada através de seu ID."
     )
-    public ResponseEntity<PredicaoImagem> show(@PathVariable Long id){
+    public ResponseEntity<EntityModel<PredicaoImagem>> show(@PathVariable Long id){
         log.info("buscando predição com id {}", id);
  
-            return repository
-                            .findById(id)
-                            .map(ResponseEntity::ok)
-                            .orElse(ResponseEntity.notFound().build());
+        PredicaoImagem predicao = repository.findById(id)
+                                    .orElseThrow(() -> new ResponseStatusException(
+                                        NOT_FOUND, "Não existe Predicao com o ID informado."
+                                    ));
+        
+        Link selfLink = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(PredicaoImagemController.class).show(id)).withSelfRel();
+        EntityModel<PredicaoImagem> model = EntityModel.of(predicao, selfLink);
+        return ResponseEntity.ok(model);
     }
  
 
@@ -116,12 +130,12 @@ public class PredicaoImagemController {
         summary = "Atualizar predições",
         description = "Atualiza uma predição especificada através de seu ID."
     )
-    public PredicaoImagem update(@PathVariable Long id, @RequestBody PredicaoImagem PredicaoImagem){
-        log.info("Atualizando predição {} para {}", id, PredicaoImagem);
+    public PredicaoImagem update(@PathVariable Long id, @RequestBody PredicaoImagem predicaoImagem){
+        log.info("Atualizando predição {} para {}", id, predicaoImagem);
  
         verificarSePredicaoImagemExiste(id);
-        PredicaoImagem.setId(id);
-        return repository.save(PredicaoImagem);
+        predicaoImagem.setId(id);
+        return repository.save(predicaoImagem);
  
     }
  
