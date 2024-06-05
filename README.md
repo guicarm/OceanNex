@@ -6,7 +6,7 @@
     <a href="#-projeto">Projeto</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
     <a href="#-tecnologias">Tecnologias</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
     <a href="#-funcionalidades">Funcionalidades</a>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-    <a href="#-diagrama">Diagrama</a>
+    <a href="#-diagramas">Diagramas</a>
 </p>
 
 <p align="center"> <a href="">Vídeo de apresentação do projeto</a></p>
@@ -63,11 +63,16 @@ git clone https://github.com/guicarm/ProjetoNexus
       
 <br/>
 
-## 📈 Diagrama
+## 📈 Diagramas
 
 <div>
-    <img src="./documents/DER.png" alt="Diagrama de classes" height="400px"/>
+    <img src="./documents/DER.png" alt="DER" height="400px"/>
 </div>
+<br/>
+<div>
+    <img src="./documents/DiagramaDeClasses.png" alt="Diagrama de classes" height="400px"/>
+</div>
+
 
 <br/>
 
