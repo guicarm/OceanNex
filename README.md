@@ -70,7 +70,7 @@ git clone https://github.com/guicarm/ProjetoNexus
 </div>
 <br/>
 <div>
-    <img src="./documents/DiagramaDeClasses.png" alt="Diagrama de classes" height="400px"/>
+    <img src="./documents/Diagrama de Classes.png" alt="Diagrama de classes" height="400px"/>
 </div>
 
 
