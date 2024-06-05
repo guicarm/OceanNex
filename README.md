@@ -31,7 +31,7 @@
 
 - Clonar o Repositório:
 ```bash
-git clone https://github.com/guicarm/ProjetoNexus
+git clone https://github.com/guicarm/OceanNex
 ```
 
 --------------------------------------------------
